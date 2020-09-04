@@ -30,6 +30,13 @@ namespace ConsoleApp
             //ExplicitLoadQuotes();
             //FilteringWithRelatedData();
             //ModifyingRelatedDataWhenNotTracked();
+            //EnlistSamuraiIntoBattle();
+            //RemoveJoinBetweenSamuraiAndBattle();
+            //GetSamuraiWithBattles();
+            //AddNewSamuraiWithHorse();
+            //AddNewHorseToSamuraiUsingId();
+            //AddNewHorseToSamuraiObject();
+            AddNewHorseToDisconnectedSamuraiObject();
 
             Console.Write("Press any key...");
             Console.ReadKey();
@@ -279,6 +286,80 @@ namespace ConsoleApp
                 //Jeśli chcemy by EF Core nie updatował wszystkich cytatów z grafu obiektów, to trzeba użyć Entry jak niżej
                 //ustawić State na Modified i wtedy SaveChanges zapisze zmiany
                 newContext.Entry(quote).State = EntityState.Modified;
+                newContext.SaveChanges();
+            }
+        }
+
+        //chyba dotąd odpalałem w pracy
+
+        private static void JoinBattleAndSamurai()
+        {
+            //Samurai i bitwa już istnieją i mamy ich IDs
+            var sbJoin = new SamuraiBattle { SamuraiId = 1, BattleId = 3 };
+            _context.Add(sbJoin);
+            _context.SaveChanges();
+        }
+
+        private static void EnlistSamuraiIntoBattle()
+        {
+            var battle = _context.Battles.Find(1);
+            battle.SamuraiBattles.Add(new SamuraiBattle { SamuraiId = 6 });
+            _context.SaveChanges();
+        }
+
+        private static void RemoveJoinBetweenSamuraiAndBattle()
+        {
+            //Normalnie powinniśmy najpierw pobrać obiekt, ale tu jest tak prosto, że jest bezpiecznie go utworzyć
+            var join = new SamuraiBattle { BattleId = 1, SamuraiId = 1 };
+            _context.Remove(join);
+            _context.SaveChanges();
+        }
+
+        private static void GetSamuraiWithBattles()
+        {
+            var samuraiWithBattle = _context.Samurais
+                .Include(s => s.SamuraiBattles)
+                .ThenInclude(sb => sb.Battle)
+                .FirstOrDefault(samurai => samurai.Id == 6);
+
+            var samuraiWithBattlesCleaner = _context.Samurais.Where(s => s.Id == 6)
+                .Select(s => new
+                {
+                    Samurai = s,
+                    Battles = s.SamuraiBattles.Select(sb => sb.Battle)
+                })
+                .FirstOrDefault();
+        }
+
+        private static void AddNewSamuraiWithHorse()
+        {
+            var samurai = new Samurai { Name = "Jina Ujichika" };
+            samurai.Horse = new Horse { Name = "Silver" };
+            _context.Samurais.Add(samurai);
+            _context.SaveChanges();
+        }
+
+        private static void AddNewHorseToSamuraiUsingId()
+        {
+            var horse = new Horse { Name = "Scout", SamuraiId = 2 };
+            _context.Add(horse);
+            _context.SaveChanges();
+        }
+
+        private static void AddNewHorseToSamuraiObject()
+        {
+            var samurai = _context.Samurais.Find(3);
+            samurai.Horse = new Horse { Name = "Black Beauty" };
+            _context.SaveChanges();
+        }
+
+        private static void AddNewHorseToDisconnectedSamuraiObject()
+        {
+            var samurai = _context.Samurais.AsNoTracking().FirstOrDefault(s => s.Id == 6);
+            samurai.Horse = new Horse { Name = "Mr. Ed" };
+            using (var newContext = new SamuraiContext())
+            {
+                newContext.Attach(samurai);
                 newContext.SaveChanges();
             }
         }
