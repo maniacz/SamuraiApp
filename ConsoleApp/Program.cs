@@ -36,7 +36,16 @@ namespace ConsoleApp
             //AddNewSamuraiWithHorse();
             //AddNewHorseToSamuraiUsingId();
             //AddNewHorseToSamuraiObject();
-            AddNewHorseToDisconnectedSamuraiObject();
+            //AddNewHorseToDisconnectedSamuraiObject();
+            //ReplaceAHorse();
+            //GetSamuraisWithHorse();
+            //GetHorseWithSamurai();
+
+            //QuerySamuraiBattlesStats();
+            //QueryUsingRawSql();
+            //QueryUsingRawSqlWithInterpolation();
+            //QueryUsingFromRawSqlStoredProc();
+            //ExecuteSomeRawSql();
 
             Console.Write("Press any key...");
             Console.ReadKey();
@@ -290,7 +299,6 @@ namespace ConsoleApp
             }
         }
 
-        //chyba dotąd odpalałem w pracy
 
         private static void JoinBattleAndSamurai()
         {
@@ -348,7 +356,7 @@ namespace ConsoleApp
 
         private static void AddNewHorseToSamuraiObject()
         {
-            var samurai = _context.Samurais.Find(3);
+            var samurai = _context.Samurais.Find(14);
             samurai.Horse = new Horse { Name = "Black Beauty" };
             _context.SaveChanges();
         }
@@ -363,5 +371,105 @@ namespace ConsoleApp
                 newContext.SaveChanges();
             }
         }
+
+        private static void ReplaceAHorse()
+        {
+            var samurai = _context.Samurais.Include(s => s.Horse).FirstOrDefault(s => s.Id == 14);
+            samurai.Horse = new Horse { Name = "Trigger" };
+            _context.SaveChanges();
+        }
+
+        private static void GetSamuraisWithHorse()
+        {
+            var samurai = _context.Samurais.Include(s => s.Horse).ToList();
+        }
+
+        private static void GetHorseWithSamurai()
+        {
+            var horseWithoutSamurai = _context.Set<Horse>().Find(3);
+
+            var horseWithSamurai = _context.Samurais.Include(s => s.Horse).FirstOrDefault(s => s.Horse.Id == 3);
+
+            var horseWithSamurais = _context.Samurais
+                .Where(s => s.Horse != null)
+                .Select(s => new { Horse = s.Horse, Samurai = s })
+                .ToList();
+        }
+
+        private static void GetSamuraiWithClan()
+        {
+            var samurai = _context.Samurais.Include(s => s.Clan).FirstOrDefault();
+        }
+
+        private static void GetClanWithSamurais()
+        {
+            //var clan = _context.Clans.Include(c => c.????)
+            var clan = _context.Clans.Find(3);
+            var samuraisForClan = _context.Samurais.Where(s => s.Clan.Id == 3).ToList();
+        }
+
+
+
+        /********************** End of [Entity Framework Core - Getting Started] 6 - Interacting with Related Data.mkv **********************/
+
+
+
+        private static void QuerySamuraiBattlesStats()
+        {
+            //var stats = _context.SamuraiBattleStats.ToList();
+            //var firstStat = _context.SamuraiBattleStats.FirstOrDefault();
+            //var sampsonStat = _context.SamuraiBattleStats.Where(s => s.Name == "SampsonSan").FirstOrDefault();
+            //var findone = _context.SamuraiBattleStats.Find(2); //wyrzuci null ref exc bo tu nie ma klucza
+
+        }
+
+        private static void QueryUsingRawSql()
+        {
+            var samurais = _context.Samurais.FromSqlRaw("select * from Samurais").ToList();
+
+            var samuraisWithQuotes = _context.Samurais.FromSqlRaw(
+                "select * from Samurais").Include(s => s.Quotes).ToList();
+        }
+
+        private static void QueryUsingRawSqlWithInterpolation()
+        {
+            string name = "Kikuchyo";
+            var samurais = _context.Samurais
+                .FromSqlInterpolated($"select * from Samurais where Name = {name}")
+                .ToList();
+        }
+
+        private static void DANGERDANGERQueryUsingRawSqlWtihInterpolation()
+        {
+            //Jeśli użyjemy FromSqlRaw i wstawimy interpolated stringa, to możliwy będzie sql-injection
+            //bo dostaniemy zapytanie niesparametryzowane
+            //TAK JAK NIŻEJ NIE WOLNO
+            string name = "Kikuchyo";
+            var samurais = _context.Samurais
+                .FromSqlRaw($"select * from Samurais where Name = '{name}'")
+                .ToList();
+        }
+
+        private static void QueryUsingFromRawSqlStoredProc()
+        {
+            var text = "Happy";
+            var samurais = _context.Samurais.FromSqlRaw(
+                "EXEC dbo.SamuraiWhoSaidAWord {0}", text).ToList();
+        }
+
+        private static void ExecuteSomeRawSql()
+        {
+            var samuraiId = 22;
+            var x = _context.Database
+                    .ExecuteSqlRaw("EXEC DeleteQuotesForSamurai {0}", samuraiId);
+
+            var samuraiId2 = 31;
+            var y = _context.Database
+                    .ExecuteSqlInterpolated($"EXEC DeleteQuotesForSamurai {samuraiId2}");
+        }
+
+
+
+        /************** End of [Entity Framework Core - Getting Started] 7 - Working with Views and Stored Procedures and Raw SQL *************/
     }
 }
