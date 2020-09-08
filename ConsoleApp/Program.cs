@@ -47,9 +47,24 @@ namespace ConsoleApp
             //QueryUsingFromRawSqlStoredProc();
             //ExecuteSomeRawSql();
 
+            /* For Plurasight molule 9 - testing */
+            InsertMultipleSamuraisForTests();
+
             Console.Write("Press any key...");
             Console.ReadKey();
 
+        }
+
+        private static void InsertMultipleSamuraisForTests()
+        {
+            //var samurai = new Samurai { Name = "Sampson" };
+            //var samurai2 = new Samurai { Name = "Tasha" };
+            //var samurai3 = new Samurai { Name = "Number 3" };
+            //var samurai4 = new Samurai { Name = "Number 4" };
+
+            var _bizdata = new BusinessDataLogic();
+            var samuraiNames = new string[] { "Sampson", "Tasha", "Number3", "Number4" };
+            var newSamuraisCreated = _bizdata.AddMultipleSamurais(samuraiNames);
         }
 
         private static void InsertMultipleSamurais()

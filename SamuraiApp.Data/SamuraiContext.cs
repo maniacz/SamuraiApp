@@ -12,6 +12,13 @@ namespace SamuraiApp.Data
         public DbSet<Battle> Battles { get; set; }
         public DbSet<SamuraiBattleStat> SamuraiBattleStats { get; set; }
 
+        public SamuraiContext()
+        { }
+
+        public SamuraiContext(DbContextOptions options)
+            : base(options)
+        { }
+
         public static readonly ILoggerFactory ConsoleLoggerFactory = LoggerFactory.Create(builder =>
         {
             builder
@@ -21,6 +28,7 @@ namespace SamuraiApp.Data
                 .AddConsole();
         });
 
+        /* Dla całego kursu, prócz ostatniego modułu dot. testów
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             string connStr = @"Data Source=.\SQLEXPRESS;Initial Catalog=SamuraiAppData;Integrated Security=True";
@@ -28,6 +36,18 @@ namespace SamuraiApp.Data
                 .UseLoggerFactory(ConsoleLoggerFactory)
                 .UseSqlServer(connStr)
                 .EnableSensitiveDataLogging();
+        }
+        */
+
+        //Dla ostatniego modułu (9) dot. testów
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+                string connStr = @"Data Source=.\SQLEXPRESS;Initial Catalog=SamuraiTestData;Integrated Security=True";
+                optionsBuilder
+                    .UseSqlServer(connStr);
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
